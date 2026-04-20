@@ -3,12 +3,12 @@ import AuthLayout from "../../components/layout/AuthLayout";
 import { useNavigate } from "react-router-dom";
 
 export default function ForgotPasswordPage() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-const handleSubmit = (e) => {
-  e.preventDefault();
-  navigate("/verify-code");
-};
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    navigate("/verify-code");
+  };
   return (
     <AuthLayout
       title="Forgot Password"

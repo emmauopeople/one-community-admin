@@ -1,13 +1,20 @@
-import { Link } from "react-router-dom";
 import AuthLayout from "../../components/layout/AuthLayout";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function ResetPasswordPage() {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    navigate("/dashboard");
+  };
+
   return (
     <AuthLayout
       title="Reset Password"
       subtitle="Enter and confirm your new password."
     >
-      <form className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             New Password

@@ -1,13 +1,20 @@
-import { Link } from "react-router-dom";
+//import { Link } from "react-router-dom";
 import AuthLayout from "../../components/layout/AuthLayout";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function VerifyCodePage() {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    navigate("/reset-password");
+  };
   return (
     <AuthLayout
       title="Verify Code"
       subtitle="Enter the verification code sent to your email."
     >
-      <form className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Verification Code
