@@ -1,13 +1,24 @@
 import AuthLayout from "../../components/layout/AuthLayout";
-import { Link } from "react-router-dom";
+//import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    login();
+    navigate("/dashboard");
+  };
+
   return (
     <AuthLayout
       title="One Community Admin"
       subtitle="Sign in to access the admin dashboard."
     >
-      <form className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Email
@@ -31,13 +42,13 @@ export default function LoginPage() {
         </div>
 
         <div className="text-right">
-  <Link
-    to="/forgot-password"
-    className="text-sm text-blue-600 hover:text-green-600 hover:underline"
-  >
-    Forgot Password?
-  </Link>
-</div>
+          <Link
+            to="/forgot-password"
+            className="text-sm text-blue-600 hover:text-green-600 hover:underline"
+          >
+            Forgot Password?
+          </Link>
+        </div>
 
         <button
           type="submit"
