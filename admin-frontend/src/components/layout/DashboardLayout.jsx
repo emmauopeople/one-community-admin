@@ -1,13 +1,20 @@
-import { NavLink } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-export default function DashboardLayout({ children, title = "Dashboard" }) {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
+import { logoutAdmin } from "../../api/authApi";
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
+export default function DashboardLayout({ children, title = "Dashboard" }) {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logoutAdmin();
+    } catch {
+      // ignore for now
+    } finally {
+      logout();
+      navigate("/");
+    }
   };
 
   return (
@@ -30,6 +37,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
           >
             Dashboard
           </NavLink>
+
           <NavLink
             to="/providers"
             className={({ isActive }) =>
@@ -42,6 +50,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
           >
             Providers
           </NavLink>
+
           <NavLink
             to="/requests"
             className={({ isActive }) =>
@@ -54,6 +63,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
           >
             Requests
           </NavLink>
+
           <NavLink
             to="/skills"
             className={({ isActive }) =>
@@ -66,6 +76,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
           >
             Skills
           </NavLink>
+
           <NavLink
             to="/analytics"
             className={({ isActive }) =>
@@ -78,6 +89,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
           >
             Analytics
           </NavLink>
+
           <NavLink
             to="/system"
             className={({ isActive }) =>
@@ -94,7 +106,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
       </aside>
 
       <main className="flex-1 flex flex-col pb-28 md:pb-0">
-        <header className="bg-gray-100 border-b border-amber-200 px-4 py-4 md:px-6">
+        <header className="bg-amber-100 border-b border-amber-200 px-4 py-4 md:px-6">
           <div className="flex w-full items-center justify-between">
             <h2 className="text-lg md:text-xl font-semibold text-gray-800">
               {title}
@@ -114,76 +126,22 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-700 to-green-600 border-t border-white/20 md:hidden">
         <div className="grid grid-cols-3 text-center text-xs">
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              `block rounded-lg px-4 py-2 text-sm font-medium ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : "text-white hover:bg-white/15"
-              }`
-            }
-          >
+          <NavLink to="/dashboard" className="px-2 py-3 text-white">
             Dashboard
           </NavLink>
-          <NavLink
-            to="/providers"
-            className={({ isActive }) =>
-              `block rounded-lg px-4 py-2 text-sm font-medium ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : "text-white hover:bg-white/15"
-              }`
-            }
-          >
+          <NavLink to="/providers" className="px-2 py-3 text-white">
             Providers
           </NavLink>
-          <NavLink
-            to="/requests"
-            className={({ isActive }) =>
-              `block rounded-lg px-4 py-2 text-sm font-medium ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : "text-white hover:bg-white/15"
-              }`
-            }
-          >
+          <NavLink to="/requests" className="px-2 py-3 text-white">
             Requests
           </NavLink>
-          <NavLink
-            to="/skills"
-            className={({ isActive }) =>
-              `block rounded-lg px-4 py-2 text-sm font-medium ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : "text-white hover:bg-white/15"
-              }`
-            }
-          >
+          <NavLink to="/skills" className="px-2 py-3 text-white">
             Skills
           </NavLink>
-          <NavLink
-            to="/analytics"
-            className={({ isActive }) =>
-              `block rounded-lg px-4 py-2 text-sm font-medium ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : "text-white hover:bg-white/15"
-              }`
-            }
-          >
+          <NavLink to="/analytics" className="px-2 py-3 text-white">
             Analytics
           </NavLink>
-          <NavLink
-            to="/system"
-            className={({ isActive }) =>
-              `block rounded-lg px-4 py-2 text-sm font-medium ${
-                isActive
-                  ? "bg-white/20 text-white"
-                  : "text-white hover:bg-white/15"
-              }`
-            }
-          >
+          <NavLink to="/system" className="px-2 py-3 text-white">
             System
           </NavLink>
         </div>

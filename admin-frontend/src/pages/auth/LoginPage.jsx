@@ -1,16 +1,41 @@
-import AuthLayout from "../../components/layout/AuthLayout";
-//import { Link } from "react-router-dom";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import AuthLayout from "../../components/layout/AuthLayout";
 import { useAuth } from "../../hooks/useAuth";
+import { loginAdmin } from "../../api/authApi";
 
 export default function LoginPage() {
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    login();
-    navigate("/dashboard");
+    setError("");
+    setLoading(true);
+
+    try {
+      const data = await loginAdmin(formData);
+      login(data.admin);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -25,6 +50,9 @@ export default function LoginPage() {
           </label>
           <input
             type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
             placeholder="admin@example.com"
             className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -36,6 +64,9 @@ export default function LoginPage() {
           </label>
           <input
             type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
             placeholder="Enter password"
             className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -50,11 +81,14 @@ export default function LoginPage() {
           </Link>
         </div>
 
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
         <button
           type="submit"
-          className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-green-500 text-white py-2 font-medium hover:from-blue-700 hover:to-green-600 transition"
+          disabled={loading}
+          className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-green-500 text-white py-2 font-medium hover:from-blue-700 hover:to-green-600 transition disabled:opacity-70"
         >
-          Sign In
+          {loading ? "Signing In..." : "Sign In"}
         </button>
       </form>
     </AuthLayout>

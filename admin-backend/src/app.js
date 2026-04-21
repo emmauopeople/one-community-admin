@@ -1,0 +1,47 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import healthRoutes from "./routes/healthRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import pool from "./db/pool.js";
+import providerRoutes from "./routes/providerRoutes.js";
+
+const app = express();
+const PgSession = connectPgSimple(session);
+
+app.use(helmet());
+app.use(
+  cors({
+    origin: process.env.ADMIN_FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
+app.use(express.json());
+
+app.use(
+  session({
+    store: new PgSession({
+      pool,
+      tableName: "admin_sessions",
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || "change_this_in_production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 8,
+    },
+  })
+);
+
+app.use("/api/admin", healthRoutes);
+app.use("/api/admin", authRoutes);
+app.use("/api/admin", dashboardRoutes);
+app.use("/api/admin", providerRoutes);
+
+export default app;
