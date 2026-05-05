@@ -18,8 +18,8 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
-      <aside className="hidden md:flex md:w-64 md:flex-col md:bg-gradient-to-b md:from-blue-700 md:to-green-600 md:shadow-md">
+    <div className="h-screen overflow-hidden bg-gray-100 flex flex-col md:flex-row">
+      <aside className="hidden md:flex md:w-64 md:h-screen md:sticky md:top-0 md:flex-col md:bg-gradient-to-b md:from-blue-700 md:to-green-600 md:shadow-md">
         <div className="px-6 py-5 border-b border-white/20">
           <h1 className="text-lg font-bold text-white">One Community Admin</h1>
         </div>
@@ -105,8 +105,8 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
         </nav>
       </aside>
 
-      <main className="flex-1 flex flex-col pb-28 md:pb-0">
-        <header className="bg-amber-100 border-b border-amber-200 px-4 py-4 md:px-6">
+      <main className="flex-1 h-screen overflow-hidden flex flex-col pb-28 md:pb-0">
+        <header className="sticky top-0 z-20 bg-gray-200 border-b border-black-600 px-4 py-4 md:px-6">
           <div className="flex w-full items-center justify-between">
             <h2 className="text-lg md:text-xl font-semibold text-gray-800">
               {title}
@@ -121,7 +121,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
           </div>
         </header>
 
-        <div className="p-4 md:p-6">{children}</div>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-700 to-green-600 border-t border-white/20 md:hidden">

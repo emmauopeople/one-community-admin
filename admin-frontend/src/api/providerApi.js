@@ -10,3 +10,35 @@ export async function getProviders() {
 
   return response.data;
 }
+
+export async function updateProviderStatus(providerId, status) {
+  const response = await axios.patch(
+    `${API_BASE_URL}/providers/${providerId}/status`,
+    { status },
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+
+export async function getProviderById(providerId) {
+  const response = await axios.get(`${API_BASE_URL}/providers/${providerId}`, {
+    withCredentials: true,
+  });
+
+  return response.data;
+}
+
+export async function updateProvider(providerId, payload) {
+  const response = await axios.patch(
+    `${API_BASE_URL}/providers/${providerId}`,
+    payload,
+    {
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+}
