@@ -30,7 +30,7 @@ export default function VerifyCodePage() {
           type="submit"
           className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-green-500 text-white py-2 font-medium hover:from-blue-700 hover:to-green-600 transition"
         >
-          Verify Code
+          Verify Code Now
         </button>
 
         <div className="text-center">
