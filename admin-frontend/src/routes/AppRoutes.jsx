@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import LoginPage from "../pages/auth/LoginPage";
 import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
-import VerifyCodePage from "../pages/auth/VerifyCodePage";
+import VerifyCodePage from "../pages/auth/VerifyCodePage1";
 import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
 import DashboardPage from "../pages/dashboard/DashboardPage";
 import ProvidersPage from "../pages/providers/ProvidersPage";
