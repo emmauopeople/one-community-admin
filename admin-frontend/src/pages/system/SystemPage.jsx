@@ -305,7 +305,7 @@ export default function SystemPage() {
         setAdminLogs(data.recent_logs || []);
       } catch (err) {
         setAdminError(
-          err.response?.data?.message || "Failed to load admin monitoring"
+          err.response?.data?.message || "Failed to load admin monitoring",
         );
       } finally {
         setAdminLoading(false);
@@ -330,7 +330,7 @@ export default function SystemPage() {
         setProviderLogs(data.recent_logs || []);
       } catch (err) {
         setProviderError(
-          err.response?.data?.message || "Failed to load provider monitoring"
+          err.response?.data?.message || "Failed to load provider monitoring",
         );
       } finally {
         setProviderLoading(false);

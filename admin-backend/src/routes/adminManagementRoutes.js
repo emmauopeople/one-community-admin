@@ -50,7 +50,7 @@ router.post("/admins", requireRootAdmin, async (req, res) => {
 
     const existingAdmin = await pool.query(
       `SELECT id FROM admin_users WHERE email = $1`,
-      [email]
+      [email],
     );
 
     if (existingAdmin.rows.length > 0) {
@@ -73,7 +73,7 @@ router.post("/admins", requireRootAdmin, async (req, res) => {
       VALUES ($1, $2, $3, 'admin', true)
       RETURNING id, full_name, email, role, is_active, created_at, updated_at
       `,
-      [full_name, email, passwordHash]
+      [full_name, email, passwordHash],
     );
 
     return res.status(201).json({

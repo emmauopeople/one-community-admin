@@ -123,9 +123,7 @@ export default function CreateAdminPanel({
               />
             </div>
 
-            {localError && (
-              <p className="text-sm text-red-600">{localError}</p>
-            )}
+            {localError && <p className="text-sm text-red-600">{localError}</p>}
 
             <button
               type="submit"

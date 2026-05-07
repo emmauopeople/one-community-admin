@@ -60,20 +60,20 @@ export default function ProvidersPage() {
 
       setProviders((prev) =>
         prev.map((item) =>
-          item.id === provider.id ? { ...item, status: nextStatus } : item
-        )
+          item.id === provider.id ? { ...item, status: nextStatus } : item,
+        ),
       );
 
       if (String(selectedProviderId) === String(provider.id)) {
         setSelectedProvider((prev) =>
-          prev ? { ...prev, status: nextStatus } : prev
+          prev ? { ...prev, status: nextStatus } : prev,
         );
       }
 
       setSuccessMessage("Provider status updated successfully.");
     } catch (err) {
       setError(
-        err.response?.data?.message || "Failed to update provider status"
+        err.response?.data?.message || "Failed to update provider status",
       );
     } finally {
       setActionLoadingId(null);
@@ -92,7 +92,9 @@ export default function ProvidersPage() {
       const data = await getProviderById(providerId);
       setSelectedProvider(data.provider);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to load provider details");
+      setError(
+        err.response?.data?.message || "Failed to load provider details",
+      );
     } finally {
       setDetailsLoading(false);
     }
@@ -139,8 +141,8 @@ export default function ProvidersPage() {
                 city: data.provider.city,
                 status: data.provider.status,
               }
-            : item
-        )
+            : item,
+        ),
       );
 
       setSuccessMessage("Provider updated successfully.");
@@ -257,8 +259,8 @@ export default function ProvidersPage() {
                               {isUpdating
                                 ? "Updating..."
                                 : isActive
-                                ? "Deactivate"
-                                : "Activate"}
+                                  ? "Deactivate"
+                                  : "Activate"}
                             </button>
                           </td>
                         </tr>
@@ -273,6 +275,7 @@ export default function ProvidersPage() {
       )}
 
       <ProviderDetailsPanel
+        key={selectedProvider?.id}
         isOpen={isPanelOpen}
         onClose={handleClosePanel}
         provider={detailsLoading ? null : selectedProvider}

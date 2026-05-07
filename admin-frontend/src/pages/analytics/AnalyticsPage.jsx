@@ -28,7 +28,7 @@ export default function AnalyticsPage() {
         setRecentLogs(data.recent_logs || []);
       } catch (err) {
         setError(
-          err.response?.data?.message || "Failed to load monitoring data"
+          err.response?.data?.message || "Failed to load monitoring data",
         );
       } finally {
         setLoading(false);
@@ -41,9 +41,7 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout title="Analytics">
       <div className="mb-4 flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-700">
-          Time Window
-        </label>
+        <label className="text-sm font-medium text-gray-700">Time Window</label>
         <select
           value={minutes}
           onChange={(e) => setMinutes(Number(e.target.value))}
@@ -56,54 +54,54 @@ export default function AnalyticsPage() {
         </select>
       </div>
       <div className="bg-white rounded-2xl shadow-sm p-5">
-  <h3 className="mb-4 text-lg font-semibold text-gray-800">
-    Admin Login Overview
-  </h3>
+        <h3 className="mb-4 text-lg font-semibold text-gray-800">
+          Admin Login Overview
+        </h3>
 
-  <div className="space-y-4">
-    <div>
-      <div className="mb-1 flex items-center justify-between text-sm">
-        <span className="text-gray-600">Successful Logins</span>
-        <span className="font-medium text-green-700">
-          {summary.success_count}
-        </span>
-      </div>
-      <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden">
-        <div
-          className="h-full bg-green-500"
-          style={{
-            width: `${
-              summary.total_count
-                ? (summary.success_count / summary.total_count) * 100
-                : 0
-            }%`,
-          }}
-        />
-      </div>
-    </div>
+        <div className="space-y-4">
+          <div>
+            <div className="mb-1 flex items-center justify-between text-sm">
+              <span className="text-gray-600">Successful Logins</span>
+              <span className="font-medium text-green-700">
+                {summary.success_count}
+              </span>
+            </div>
+            <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden">
+              <div
+                className="h-full bg-green-500"
+                style={{
+                  width: `${
+                    summary.total_count
+                      ? (summary.success_count / summary.total_count) * 100
+                      : 0
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
 
-    <div>
-      <div className="mb-1 flex items-center justify-between text-sm">
-        <span className="text-gray-600">Failed Logins</span>
-        <span className="font-medium text-red-700">
-          {summary.failed_count}
-        </span>
+          <div>
+            <div className="mb-1 flex items-center justify-between text-sm">
+              <span className="text-gray-600">Failed Logins</span>
+              <span className="font-medium text-red-700">
+                {summary.failed_count}
+              </span>
+            </div>
+            <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden">
+              <div
+                className="h-full bg-red-500"
+                style={{
+                  width: `${
+                    summary.total_count
+                      ? (summary.failed_count / summary.total_count) * 100
+                      : 0
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden">
-        <div
-          className="h-full bg-red-500"
-          style={{
-            width: `${
-              summary.total_count
-                ? (summary.failed_count / summary.total_count) * 100
-                : 0
-            }%`,
-          }}
-        />
-      </div>
-    </div>
-  </div>
-</div>
 
       {loading ? (
         <div className="bg-white rounded-2xl shadow-sm p-5">
@@ -114,7 +112,6 @@ export default function AnalyticsPage() {
           <p className="text-sm text-red-600">{error}</p>
         </div>
       ) : (
-        
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl shadow-sm p-5">

@@ -76,7 +76,7 @@ router.get("/requests/:id", requireAdminAuth, async (req, res) => {
         ON u.id = pr.provider_id
       WHERE pr.id = $1
       `,
-      [id]
+      [id],
     );
 
     if (requestResult.rows.length === 0) {
@@ -98,7 +98,7 @@ router.get("/requests/:id", requireAdminAuth, async (req, res) => {
       WHERE request_id = $1
       ORDER BY created_at ASC
       `,
-      [id]
+      [id],
     );
 
     return res.status(200).json({
@@ -150,7 +150,7 @@ router.patch("/requests/:id", requireAdminAuth, async (req, res) => {
       WHERE id = $3
       RETURNING *
       `,
-      [status, req.session.admin.id, id]
+      [status, req.session.admin.id, id],
     );
 
     if (result.rows.length === 0) {
@@ -185,7 +185,7 @@ router.post("/requests/:id/notes", requireAdminAuth, async (req, res) => {
 
     const requestCheck = await pool.query(
       `SELECT id FROM provider_requests WHERE id = $1`,
-      [id]
+      [id],
     );
 
     if (requestCheck.rows.length === 0) {
@@ -200,8 +200,7 @@ router.post("/requests/:id/notes", requireAdminAuth, async (req, res) => {
       VALUES ($1, 'admin', $2, $3)
       RETURNING *
       `,
-      [id, req.session.admin.id, note.trim()]
-      
+      [id, req.session.admin.id, note.trim()],
     );
 
     requestNotesAddedTotal.inc();

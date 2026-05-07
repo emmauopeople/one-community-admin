@@ -24,7 +24,7 @@ router.post("/auth/login", async (req, res) => {
       `SELECT id, full_name, email, password_hash, role, is_active
        FROM admin_users
        WHERE email = $1`,
-      [email]
+      [email],
     );
 
     if (result.rows.length === 0) {
@@ -37,7 +37,7 @@ router.post("/auth/login", async (req, res) => {
         VALUES
           ($1, $2, $3, $4, $5, $6)
         `,
-        [null, email, "failed", "email_not_found", ipAddress, userAgent]
+        [null, email, "failed", "email_not_found", ipAddress, userAgent],
       );
 
       return res.status(401).json({
@@ -57,7 +57,7 @@ router.post("/auth/login", async (req, res) => {
         VALUES
           ($1, $2, $3, $4, $5, $6)
         `,
-        [admin.id, email, "failed", "inactive_account", ipAddress, userAgent]
+        [admin.id, email, "failed", "inactive_account", ipAddress, userAgent],
       );
 
       return res.status(403).json({
@@ -77,7 +77,7 @@ router.post("/auth/login", async (req, res) => {
         VALUES
           ($1, $2, $3, $4, $5, $6)
         `,
-        [admin.id, email, "failed", "invalid_password", ipAddress, userAgent]
+        [admin.id, email, "failed", "invalid_password", ipAddress, userAgent],
       );
 
       return res.status(401).json({
@@ -101,7 +101,7 @@ router.post("/auth/login", async (req, res) => {
       VALUES
         ($1, $2, $3, $4, $5, $6)
       `,
-      [admin.id, email, "success", null, ipAddress, userAgent]
+      [admin.id, email, "success", null, ipAddress, userAgent],
     );
 
     return res.status(200).json({

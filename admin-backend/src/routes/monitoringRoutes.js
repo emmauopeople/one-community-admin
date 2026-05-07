@@ -17,7 +17,7 @@ router.get("/monitoring/admin-logins", requireAdminAuth, async (req, res) => {
       FROM admin_login_logs
       WHERE created_at >= NOW() - ($1::text || ' minutes')::interval
       `,
-      [minutes]
+      [minutes],
     );
 
     const recentLogsResult = await pool.query(
@@ -34,7 +34,7 @@ router.get("/monitoring/admin-logins", requireAdminAuth, async (req, res) => {
       ORDER BY created_at DESC
       LIMIT 20
       `,
-      [minutes]
+      [minutes],
     );
 
     return res.status(200).json({
@@ -51,12 +51,15 @@ router.get("/monitoring/admin-logins", requireAdminAuth, async (req, res) => {
   }
 });
 
-router.get("/monitoring/provider-logins", requireAdminAuth, async (req, res) => {
-  try {
-    const minutes = Math.max(1, Number(req.query.minutes) || 15);
+router.get(
+  "/monitoring/provider-logins",
+  requireAdminAuth,
+  async (req, res) => {
+    try {
+      const minutes = Math.max(1, Number(req.query.minutes) || 15);
 
-    const summaryResult = await pool.query(
-      `
+      const summaryResult = await pool.query(
+        `
       SELECT
         COUNT(*) FILTER (WHERE success = true) AS success_count,
         COUNT(*) FILTER (WHERE success = false) AS failed_count,
@@ -65,11 +68,11 @@ router.get("/monitoring/provider-logins", requireAdminAuth, async (req, res) => 
       WHERE created_at >= NOW() - ($1::text || ' minutes')::interval
         AND event_type = 'login'
       `,
-      [minutes]
-    );
+        [minutes],
+      );
 
-    const recentLogsResult = await pool.query(
-      `
+      const recentLogsResult = await pool.query(
+        `
       SELECT
         id,
         email,
@@ -82,21 +85,22 @@ router.get("/monitoring/provider-logins", requireAdminAuth, async (req, res) => 
       ORDER BY created_at DESC
       LIMIT 20
       `,
-      [minutes]
-    );
+        [minutes],
+      );
 
-    return res.status(200).json({
-      message: "Provider login monitoring fetched successfully",
-      minutes,
-      summary: summaryResult.rows[0],
-      recent_logs: recentLogsResult.rows,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Failed to fetch provider login monitoring",
-      error: error.message,
-    });
-  }
-});
+      return res.status(200).json({
+        message: "Provider login monitoring fetched successfully",
+        minutes,
+        summary: summaryResult.rows[0],
+        recent_logs: recentLogsResult.rows,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Failed to fetch provider login monitoring",
+        error: error.message,
+      });
+    }
+  },
+);
 
 export default router;

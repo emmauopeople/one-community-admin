@@ -37,7 +37,7 @@ export async function updateProvider(providerId, payload) {
     payload,
     {
       withCredentials: true,
-    }
+    },
   );
 
   return response.data;

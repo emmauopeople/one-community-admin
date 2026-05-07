@@ -76,7 +76,7 @@ router.get("/providers/:id", requireAdminAuth, async (req, res) => {
         u.created_at,
         u.updated_at
       `,
-      [id]
+      [id],
     );
 
     if (result.rows.length === 0) {
@@ -100,14 +100,8 @@ router.get("/providers/:id", requireAdminAuth, async (req, res) => {
 router.patch("/providers/:id", requireAdminAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      display_name,
-      phone,
-      city,
-      status,
-      changePassword,
-      newPassword,
-    } = req.body;
+    const { display_name, phone, city, status, changePassword, newPassword } =
+      req.body;
 
     if (!["active", "inactive"].includes(status)) {
       return res.status(400).json({
@@ -143,7 +137,7 @@ router.patch("/providers/:id", requireAdminAuth, async (req, res) => {
       WHERE id = $5 AND role = 'provider'
       RETURNING id, display_name, email, phone, city, status, email_verified, updated_at
       `,
-      values
+      values,
     );
 
     if (result.rows.length === 0) {
@@ -182,7 +176,7 @@ router.patch("/providers/:id/status", requireAdminAuth, async (req, res) => {
       WHERE id = $2 AND role = 'provider'
       RETURNING id, display_name, email, phone, city, status
       `,
-      [status, id]
+      [status, id],
     );
 
     if (result.rows.length === 0) {

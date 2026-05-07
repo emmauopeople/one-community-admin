@@ -1,4 +1,4 @@
-name: Admin CI
+name: Admin Dashboard CI
 
 on:
   pull_request:
@@ -8,50 +8,109 @@ on:
 permissions:
   contents: read
 
+env:
+  NODE_VERSION: "22"
+  FRONTEND_DIR: admin-frontend
+  BACKEND_DIR: admin-backend
+
 jobs:
-  frontend-quality:
-    name: Frontend quality
+  frontend-ci:
+    name: Frontend - Quality, Test, Build, Security
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: admin-frontend
+        working-directory: ${{ env.FRONTEND_DIR }}
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: admin-frontend/package-lock.json
+          cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
 
-      - name: Run ESLint
+      - name: Check frontend formatting
+        run: npm run format:check
+
+      - name: Run frontend ESLint
         run: npm run lint
 
-      - name: Check formatting
-        run: npx prettier . --check
+      - name: Run frontend unit tests
+        run: npm run test
 
-  trivy-fs-scan:
-    name: Trivy filesystem scan
-    runs-on: ubuntu-latest
+      - name: Run frontend test coverage
+        run: npm run test:coverage
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Build frontend
+        run: npm run build
 
-      - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@v0.35.0
+      - name: Run frontend dependency scan
+        run: npm run scan:deps
+
+      - name: Run frontend Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
-          scan-ref: .
+          scan-ref: ${{ env.FRONTEND_DIR }}
           scanners: vuln,secret,misconfig
+          skip-dirs: node_modules,coverage,dist
+          format: table
+          exit-code: "1"
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: 1
-          hide-progress: true
+
+  backend-ci:
+    name: Backend - Quality, Test, Security
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.BACKEND_DIR }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.BACKEND_DIR }}/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Check backend formatting
+        run: npm run format:check
+
+      - name: Run backend ESLint
+        run: npm run lint
+
+      - name: Run backend unit tests
+        run: npm run test
+
+      - name: Run backend test coverage
+        run: npm run test:coverage
+
+      - name: Run backend dependency scan
+        run: npm run scan:deps
+
+      - name: Run backend Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: ${{ env.BACKEND_DIR }}
+          scanners: vuln,secret,misconfig
+          skip-dirs: node_modules,coverage,dist
+          format: table
+          exit-code: "1"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true

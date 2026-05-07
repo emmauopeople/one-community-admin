@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function SkillDetailsPanel({
   isOpen,
@@ -7,27 +7,16 @@ export default function SkillDetailsPanel({
   onSave,
   isSaving = false,
 }) {
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "",
-    tags: "",
-    description: "",
-    city: "",
-    status: "active",
-  });
+  const initialForm = {
+    title: skill?.title || "",
+    category: skill?.category || "",
+    tags: skill?.tags || "",
+    description: skill?.description || "",
+    city: skill?.city || "",
+    status: skill?.status || "active",
+  };
 
-  useEffect(() => {
-    if (skill) {
-      setFormData({
-        title: skill.title || "",
-        category: skill.category || "",
-        tags: skill.tags || "",
-        description: skill.description || "",
-        city: skill.city || "",
-        status: skill.status || "active",
-      });
-    }
-  }, [skill]);
+  const [formData, setFormData] = useState(initialForm);
 
   if (!isOpen) return null;
 
@@ -47,16 +36,11 @@ export default function SkillDetailsPanel({
 
   return (
     <div className="fixed inset-0 z-50">
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       <div className="absolute right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl overflow-y-auto">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Skill Details
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-800">Skill Details</h2>
 
           <button
             type="button"

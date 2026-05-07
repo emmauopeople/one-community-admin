@@ -25,7 +25,7 @@ export async function updateSkill(skillId, payload) {
     payload,
     {
       withCredentials: true,
-    }
+    },
   );
 
   return response.data;

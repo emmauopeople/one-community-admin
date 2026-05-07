@@ -21,7 +21,7 @@ app.use(
   cors({
     origin: process.env.ADMIN_FRONTEND_URL || "http://localhost:5173",
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 
@@ -40,7 +40,7 @@ app.use(
       secure: false,
       maxAge: 1000 * 60 * 60 * 8,
     },
-  })
+  }),
 );
 
 app.use("/api/admin", healthRoutes);

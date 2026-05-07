@@ -49,7 +49,10 @@ export default function RequestsPage() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const loadRequests = async (currentFilter = filterStatus, keepSelectedId = null) => {
+  const loadRequests = async (
+    currentFilter = filterStatus,
+    keepSelectedId = null,
+  ) => {
     setListLoading(true);
     setError("");
 
@@ -191,7 +194,9 @@ export default function RequestsPage() {
                   <table className="min-w-full text-sm">
                     <thead className="sticky top-0 z-10 bg-blue-700 text-white">
                       <tr className="text-left">
-                        <th className="py-3 pr-4 pl-3 font-semibold">Provider</th>
+                        <th className="py-3 pr-4 pl-3 font-semibold">
+                          Provider
+                        </th>
                         <th className="py-3 pr-4 font-semibold">Title</th>
                         <th className="py-3 pr-4 font-semibold">Status</th>
                       </tr>
@@ -221,7 +226,7 @@ export default function RequestsPage() {
                             <td className="py-4 pr-4">
                               <span
                                 className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
-                                  request.status
+                                  request.status,
                                 )}`}
                               >
                                 {request.status}
@@ -241,34 +246,48 @@ export default function RequestsPage() {
         {/* RIGHT COLUMN */}
         <div className="bg-white rounded-2xl shadow-sm p-5 flex flex-col min-h-0">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Request Details</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Request Details
+            </h3>
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto">
             {detailsLoading ? (
-              <p className="text-sm text-gray-500">Loading request details...</p>
+              <p className="text-sm text-gray-500">
+                Loading request details...
+              </p>
             ) : !selectedRequest ? (
-              <p className="text-sm text-gray-500">Select a request to view details.</p>
+              <p className="text-sm text-gray-500">
+                Select a request to view details.
+              </p>
             ) : (
               <div className="space-y-4 pr-1">
                 <div>
-                  <p className="text-xs font-semibold uppercase text-gray-500">Title</p>
-                  <p className="text-sm text-gray-800 mt-1">{selectedRequest.title}</p>
+                  <p className="text-xs font-semibold uppercase text-gray-500">
+                    Title
+                  </p>
+                  <p className="text-sm text-gray-800 mt-1">
+                    {selectedRequest.title}
+                  </p>
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold uppercase text-gray-500">Provider</p>
+                  <p className="text-xs font-semibold uppercase text-gray-500">
+                    Provider
+                  </p>
                   <p className="text-sm text-gray-800 mt-1">
                     {selectedRequest.display_name || "Unknown provider"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold uppercase text-gray-500">Status</p>
+                  <p className="text-xs font-semibold uppercase text-gray-500">
+                    Status
+                  </p>
                   <div className="mt-1">
                     <span
                       className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
-                        selectedRequest.status
+                        selectedRequest.status,
                       )}`}
                     >
                       {selectedRequest.status}
@@ -277,7 +296,9 @@ export default function RequestsPage() {
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold uppercase text-gray-500">Description</p>
+                  <p className="text-xs font-semibold uppercase text-gray-500">
+                    Description
+                  </p>
                   <p className="text-sm text-gray-800 mt-1">
                     {selectedRequest.description}
                   </p>
@@ -298,8 +319,8 @@ export default function RequestsPage() {
                           className="rounded-xl border border-gray-200 p-3"
                         >
                           <p className="text-xs font-semibold text-gray-500 mb-1">
-                            {note.user_type === "admin" ? "Admin" : "Provider"} —{" "}
-                            {new Date(note.created_at).toLocaleString()}
+                            {note.user_type === "admin" ? "Admin" : "Provider"}{" "}
+                            — {new Date(note.created_at).toLocaleString()}
                           </p>
                           <p className="text-sm text-gray-800">{note.note}</p>
                         </div>

@@ -72,7 +72,7 @@ router.get("/skills/:id", requireAdminAuth, async (req, res) => {
         ON u.id = s.provider_id
       WHERE s.id = $1
       `,
-      [id]
+      [id],
     );
 
     if (result.rows.length === 0) {
@@ -96,14 +96,7 @@ router.get("/skills/:id", requireAdminAuth, async (req, res) => {
 router.patch("/skills/:id", requireAdminAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      title,
-      category,
-      tags,
-      description,
-      city,
-      status,
-    } = req.body;
+    const { title, category, tags, description, city, status } = req.body;
 
     if (!["active", "inactive"].includes(status)) {
       return res.status(400).json({
@@ -125,7 +118,7 @@ router.patch("/skills/:id", requireAdminAuth, async (req, res) => {
       WHERE id = $7
       RETURNING *
       `,
-      [title, category, tags, description, city, status, id]
+      [title, category, tags, description, city, status, id],
     );
 
     if (result.rows.length === 0) {

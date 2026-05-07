@@ -93,8 +93,8 @@ export default function SkillsPage() {
                 city: data.skill.city,
                 status: data.skill.status,
               }
-            : item
-        )
+            : item,
+        ),
       );
 
       setSuccessMessage("Skill updated successfully.");
@@ -201,6 +201,7 @@ export default function SkillsPage() {
       )}
 
       <SkillDetailsPanel
+        key={selectedSkill?.id}
         isOpen={isPanelOpen}
         onClose={handleClosePanel}
         skill={detailsLoading ? null : selectedSkill}

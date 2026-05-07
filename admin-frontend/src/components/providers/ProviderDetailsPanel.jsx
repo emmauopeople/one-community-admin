@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function ProviderDetailsPanel({
   isOpen,
@@ -7,34 +7,19 @@ export default function ProviderDetailsPanel({
   onSave,
   isSaving = false,
 }) {
-  const [formData, setFormData] = useState({
-    display_name: "",
-    email: "",
-    phone: "",
-    city: "",
-    status: "active",
+  const initialForm = {
+    display_name: provider?.display_name || "",
+    email: provider?.email || "",
+    phone: provider?.phone || "",
+    city: provider?.city || "",
+    status: provider?.status || "active",
     changePassword: false,
     newPassword: "",
     confirmPassword: "",
-  });
+  };
 
+  const [formData, setFormData] = useState(initialForm);
   const [localError, setLocalError] = useState("");
-
-  useEffect(() => {
-    if (provider) {
-      setFormData({
-        display_name: provider.display_name || "",
-        email: provider.email || "",
-        phone: provider.phone || "",
-        city: provider.city || "",
-        status: provider.status || "active",
-        changePassword: false,
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setLocalError("");
-    }
-  }, [provider]);
 
   if (!isOpen) return null;
 
