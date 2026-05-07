@@ -13,16 +13,22 @@ import skillRoutes from "./routes/skillRoutes.js";
 import metricsRoutes from "./routes/metricsRoutes.js";
 import monitoringRoutes from "./routes/monitoringRoutes.js";
 import adminManagementRoutes from "./routes/adminManagementRoutes.js";
+
 const app = express();
+
+app.set("trust proxy", 1);
+
 const PgSession = connectPgSimple(session);
 
 app.use(helmet());
+
 app.use(
   cors({
     origin: process.env.ADMIN_FRONTEND_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
+
 app.use(express.json());
 
 app.use(
@@ -37,7 +43,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 8,
     },
   }),
