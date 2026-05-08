@@ -57,7 +57,7 @@ jobs:
           file: ${{ env.FRONTEND_DIR }}/Dockerfile
           push: true
           build-args: |
-            VITE_API_URL=https://api.admin.cameroonskills.org
+            VITE_API_URL=https://api.admin.cameroonskills.org/api/admin
           tags: |
             ${{ steps.image_names.outputs.frontend_image }}
 
