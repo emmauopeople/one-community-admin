@@ -33,7 +33,7 @@ export async function updateAdmin(adminId, payload) {
     payload,
     {
       withCredentials: true,
-    }
+    },
   );
 
   return response.data;
