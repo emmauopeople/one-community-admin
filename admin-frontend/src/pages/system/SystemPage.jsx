@@ -4,8 +4,15 @@ import {
   getAdminLoginMonitoring,
   getProviderLoginMonitoring,
 } from "../../api/monitoringApi";
-import { getAdmins } from "../../api/adminManagementApi";
+import {
+  getAdmins,
+  createAdmin,
+  getAdminById,
+  updateAdmin,
+} from "../../api/adminManagementApi";
 import { useAuth } from "../../hooks/useAuth";
+import CreateAdminPanel from "../../components/system/CreateAdminPanel";
+import AdminDetailsPanel from "../../components/system/AdminDetailsPanel";
 
 function MonitoringSection({
   title,
@@ -35,7 +42,7 @@ function MonitoringSection({
           <select
             value={minutes}
             onChange={(e) => onMinutesChange(Number(e.target.value))}
-            className="rounded-xl border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="rounded-xl border border-gray-300 bg-white px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value={15}>Last 15 minutes</option>
             <option value={60}>Last 60 minutes</option>
@@ -58,7 +65,7 @@ function MonitoringSection({
                     {successCount}
                   </span>
                 </div>
-                <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden">
+                <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
                   <div
                     className="h-full bg-green-500"
                     style={{ width: `${successPercent}%` }}
@@ -73,7 +80,7 @@ function MonitoringSection({
                     {failedCount}
                   </span>
                 </div>
-                <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden">
+                <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
                   <div
                     className="h-full bg-red-500"
                     style={{ width: `${failedPercent}%` }}
@@ -82,7 +89,7 @@ function MonitoringSection({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-xl bg-gray-50 p-4">
                 <p className="text-sm text-gray-500">{successLabel}</p>
                 <h4 className="mt-2 text-2xl font-bold text-green-700">
@@ -125,7 +132,7 @@ function MonitoringSection({
               <table className="min-w-full text-sm">
                 <thead className="sticky top-0 z-10 bg-blue-700 text-white">
                   <tr className="text-left">
-                    <th className="py-3 pr-4 pl-3 font-semibold">Email</th>
+                    <th className="py-3 pl-3 pr-4 font-semibold">Email</th>
                     <th className="py-3 pr-4 font-semibold">Status</th>
                     {isAdmin && (
                       <th className="py-3 pr-4 font-semibold">Reason</th>
@@ -145,7 +152,7 @@ function MonitoringSection({
                         key={log.id}
                         className="border-b last:border-b-0 hover:bg-gray-50"
                       >
-                        <td className="py-4 pr-4 pl-3 text-gray-800">
+                        <td className="py-4 pl-3 pr-4 text-gray-800">
                           {isAdmin ? log.email_attempted : log.email}
                         </td>
                         <td className="py-4 pr-4">
@@ -183,7 +190,13 @@ function MonitoringSection({
   );
 }
 
-function AdminsSection({ admins, loading, error, onOpenCreatePanel }) {
+function AdminsSection({
+  admins,
+  loading,
+  error,
+  onOpenCreatePanel,
+  onOpenAdminDetails,
+}) {
   return (
     <div className="bg-white rounded-2xl shadow-sm p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -210,7 +223,7 @@ function AdminsSection({ admins, loading, error, onOpenCreatePanel }) {
             <table className="min-w-full text-sm">
               <thead className="sticky top-0 z-10 bg-blue-700 text-white">
                 <tr className="text-left">
-                  <th className="py-3 pr-4 pl-3 font-semibold">Full Name</th>
+                  <th className="py-3 pl-3 pr-4 font-semibold">Full Name</th>
                   <th className="py-3 pr-4 font-semibold">Email</th>
                   <th className="py-3 pr-4 font-semibold">Role</th>
                   <th className="py-3 pr-4 font-semibold">Status</th>
@@ -221,9 +234,10 @@ function AdminsSection({ admins, loading, error, onOpenCreatePanel }) {
                 {admins.map((adminItem) => (
                   <tr
                     key={adminItem.id}
-                    className="border-b last:border-b-0 hover:bg-gray-50"
+                    onClick={() => onOpenAdminDetails(adminItem.id)}
+                    className="border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
                   >
-                    <td className="py-4 pr-4 pl-3 font-medium text-gray-800">
+                    <td className="py-4 pl-3 pr-4 font-medium text-gray-800">
                       {adminItem.full_name}
                     </td>
                     <td className="py-4 pr-4 text-gray-600">
@@ -266,6 +280,9 @@ export default function SystemPage() {
   const [adminMinutes, setAdminMinutes] = useState(15);
   const [providerMinutes, setProviderMinutes] = useState(15);
 
+  const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
+  const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
+
   const [adminSummary, setAdminSummary] = useState({
     success_count: 0,
     failed_count: 0,
@@ -289,6 +306,95 @@ export default function SystemPage() {
   const [adminError, setAdminError] = useState("");
   const [providerError, setProviderError] = useState("");
   const [adminsError, setAdminsError] = useState("");
+
+  const [isAdminDetailsOpen, setIsAdminDetailsOpen] = useState(false);
+  const [selectedAdminId, setSelectedAdminId] = useState(null);
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const [adminDetailsLoading, setAdminDetailsLoading] = useState(false);
+  const [isSavingAdmin, setIsSavingAdmin] = useState(false);
+
+  const handleOpenCreatePanel = () => {
+    setIsCreatePanelOpen(true);
+  };
+
+  const handleCloseCreatePanel = () => {
+    setIsCreatePanelOpen(false);
+  };
+
+  const handleCreateAdmin = async (payload) => {
+    setIsCreatingAdmin(true);
+    setAdminsError("");
+
+    try {
+      const data = await createAdmin(payload);
+      setAdmins((prev) => [data.admin, ...prev]);
+      setIsCreatePanelOpen(false);
+    } catch (err) {
+      setAdminsError(err.response?.data?.message || "Failed to create admin");
+    } finally {
+      setIsCreatingAdmin(false);
+    }
+  };
+  //open admin detaitls
+  const handleOpenAdminDetails = async (adminId) => {
+    setIsAdminDetailsOpen(true);
+    setSelectedAdminId(adminId);
+    setSelectedAdmin(null);
+    setAdminDetailsLoading(true);
+    setAdminsError("");
+
+    try {
+      const data = await getAdminById(adminId);
+      setSelectedAdmin(data.admin);
+    } catch (err) {
+      setAdminsError(
+        err.response?.data?.message || "Failed to load admin details",
+      );
+    } finally {
+      setAdminDetailsLoading(false);
+    }
+  };
+
+  //save details
+  const handleSaveAdmin = async (formData) => {
+    if (!selectedAdminId) return;
+
+    setIsSavingAdmin(true);
+    setAdminsError("");
+
+    try {
+      const payload = {
+        full_name: formData.full_name,
+        email: formData.email,
+        role: formData.role,
+        is_active: formData.is_active,
+        changePassword: formData.changePassword,
+        newPassword: formData.changePassword ? formData.newPassword : "",
+      };
+
+      const data = await updateAdmin(selectedAdminId, payload);
+
+      setSelectedAdmin(data.admin);
+
+      setAdmins((prev) =>
+        prev.map((item) =>
+          String(item.id) === String(selectedAdminId)
+            ? { ...item, ...data.admin }
+            : item,
+        ),
+      );
+    } catch (err) {
+      setAdminsError(err.response?.data?.message || "Failed to update admin");
+    } finally {
+      setIsSavingAdmin(false);
+    }
+  };
+
+  const handleCloseAdminDetails = () => {
+    setIsAdminDetailsOpen(false);
+    setSelectedAdminId(null);
+    setSelectedAdmin(null);
+  };
 
   useEffect(() => {
     const loadAdminMonitoring = async () => {
@@ -438,8 +544,24 @@ export default function SystemPage() {
           admins={admins}
           loading={adminsLoading}
           error={adminsError}
+          onOpenCreatePanel={handleOpenCreatePanel}
+          onOpenAdminDetails={handleOpenAdminDetails}
         />
       )}
+
+      <CreateAdminPanel
+        isOpen={isCreatePanelOpen}
+        onClose={handleCloseCreatePanel}
+        onCreate={handleCreateAdmin}
+        isCreating={isCreatingAdmin}
+      />
+      <AdminDetailsPanel
+        isOpen={isAdminDetailsOpen}
+        onClose={handleCloseAdminDetails}
+        admin={adminDetailsLoading ? null : selectedAdmin}
+        onSave={handleSaveAdmin}
+        isSaving={isSavingAdmin}
+      />
     </DashboardLayout>
   );
 }
