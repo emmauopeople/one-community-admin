@@ -10,10 +10,31 @@ export async function getAdmins() {
 
   return response.data;
 }
+
 export async function createAdmin(payload) {
   const response = await axios.post(`${API_BASE_URL}/admins`, payload, {
     withCredentials: true,
   });
+
+  return response.data;
+}
+
+export async function getAdminById(adminId) {
+  const response = await axios.get(`${API_BASE_URL}/admins/${adminId}`, {
+    withCredentials: true,
+  });
+
+  return response.data;
+}
+
+export async function updateAdmin(adminId, payload) {
+  const response = await axios.patch(
+    `${API_BASE_URL}/admins/${adminId}`,
+    payload,
+    {
+      withCredentials: true,
+    }
+  );
 
   return response.data;
 }
