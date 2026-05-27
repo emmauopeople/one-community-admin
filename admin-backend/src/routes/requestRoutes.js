@@ -1,4 +1,5 @@
 import express from "express";
+import nodemailer from "nodemailer";
 import requireAdminAuth from "../middleware/requireAdminAuth.js";
 import pool from "../db/pool.js";
 import {
@@ -32,36 +33,95 @@ function toDbStatus(status) {
   return uiToDbStatus[status] || status;
 }
 
+function normalizeRequesterType(type) {
+  if (type === "public" || type === "provider" || type === "all") {
+    return type;
+  }
+
+  return "provider";
+}
+
+function getTransporter() {
+  if (
+    !process.env.SMTP_HOST ||
+    !process.env.SMTP_USER ||
+    !process.env.SMTP_PASS
+  ) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: Number(process.env.SMTP_PORT || 587) === 465,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+}
+
+async function sendPublicReplyEmail({ to, requesterName, subject, note }) {
+  const transporter = getTransporter();
+
+  if (!transporter) {
+    return { sent: false, reason: "SMTP not configured" };
+  }
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to,
+    subject: `One Community reply: ${subject || "Your message"}`,
+    text:
+      `Hello ${requesterName || ""},\n\n` +
+      `The One Community admin team replied to your message.\n\n` +
+      `${note}\n\n` +
+      `Thank you,\n` +
+      `One Community Admin Team\n`,
+  });
+
+  return { sent: true };
+}
+
 router.get("/requests", requireAdminAuth, async (req, res) => {
   try {
     const { status = "all" } = req.query;
+    const requesterType = normalizeRequesterType(req.query.type || "provider");
 
     let sql = `
       SELECT
         sr.id,
+        sr.requester_type,
         sr.requester_user_id AS provider_id,
         sr.requester_name AS display_name,
+        sr.requester_email AS email,
         sr.subject AS title,
         sr.status,
         sr.created_at,
-        sr.updated_at
+        sr.updated_at,
+        sr.last_message_at
       FROM support_requests sr
-      WHERE sr.requester_type = 'provider'
+      WHERE 1 = 1
     `;
 
     const values = [];
 
+    if (requesterType !== "all") {
+      values.push(requesterType);
+      sql += ` AND sr.requester_type = $${values.length} `;
+    }
+
     if (status === "closed") {
-      sql += ` AND sr.status = $1 `;
       values.push("closed");
+      sql += ` AND sr.status = $${values.length} `;
     } else if (status !== "all") {
-      sql += ` AND sr.status = $1 AND sr.status <> 'closed' `;
       values.push(toDbStatus(status));
+      sql += ` AND sr.status = $${values.length} AND sr.status <> 'closed' `;
     } else {
       sql += ` AND sr.status <> 'closed' `;
     }
 
-    sql += ` ORDER BY sr.created_at DESC `;
+    sql += ` ORDER BY sr.last_message_at DESC, sr.created_at DESC `;
 
     const result = await pool.query(sql, values);
 
@@ -90,6 +150,7 @@ router.get("/requests/:id", requireAdminAuth, async (req, res) => {
       `
       SELECT
         sr.id,
+        sr.requester_type,
         sr.requester_user_id AS provider_id,
         sr.requester_name AS display_name,
         sr.requester_email AS email,
@@ -102,7 +163,6 @@ router.get("/requests/:id", requireAdminAuth, async (req, res) => {
         sr.closed_at AS completed_at
       FROM support_requests sr
       WHERE sr.id = $1
-        AND sr.requester_type = 'provider'
       `,
       [id],
     );
@@ -168,7 +228,8 @@ router.patch("/requests/:id", requireAdminAuth, async (req, res) => {
     }
 
     const dbStatus = toDbStatus(status);
-    const closedAt = dbStatus === "completed" || dbStatus === "closed" ? "NOW()" : "NULL";
+    const closedAt =
+      dbStatus === "completed" || dbStatus === "closed" ? "NOW()" : "NULL";
 
     const result = await pool.query(
       `
@@ -178,7 +239,6 @@ router.patch("/requests/:id", requireAdminAuth, async (req, res) => {
         updated_at = NOW(),
         closed_at = ${closedAt}
       WHERE id = $2
-        AND requester_type = 'provider'
       RETURNING *
       `,
       [dbStatus, id],
@@ -225,10 +285,14 @@ router.post("/requests/:id/notes", requireAdminAuth, async (req, res) => {
 
     const requestCheck = await pool.query(
       `
-      SELECT id
+      SELECT
+        id,
+        requester_type,
+        requester_name,
+        requester_email,
+        subject
       FROM support_requests
       WHERE id = $1
-        AND requester_type = 'provider'
       `,
       [id],
     );
@@ -238,6 +302,8 @@ router.post("/requests/:id/notes", requireAdminAuth, async (req, res) => {
         message: "Request not found",
       });
     }
+
+    const request = requestCheck.rows[0];
 
     const result = await pool.query(
       `
@@ -266,11 +332,26 @@ router.post("/requests/:id/notes", requireAdminAuth, async (req, res) => {
       [id],
     );
 
+    let emailResult = { sent: false };
+
+    if (request.requester_type === "public") {
+      emailResult = await sendPublicReplyEmail({
+        to: request.requester_email,
+        requesterName: request.requester_name,
+        subject: request.subject,
+        note: note.trim(),
+      });
+    }
+
     requestNotesAddedTotal.inc();
 
     return res.status(201).json({
-      message: "Note added successfully",
+      message:
+        request.requester_type === "public" && emailResult.sent
+          ? "Reply saved and email sent successfully"
+          : "Note added successfully",
       note: result.rows[0],
+      email: emailResult,
     });
   } catch (error) {
     return res.status(500).json({

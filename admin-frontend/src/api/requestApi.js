@@ -3,9 +3,9 @@ import axios from "axios";
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api/admin";
 
-export async function getRequests(status = "all") {
+export async function getRequests(status = "all", type = "provider") {
   const response = await axios.get(`${API_BASE_URL}/requests`, {
-    params: { status },
+    params: { status, type },
     withCredentials: true,
   });
 
