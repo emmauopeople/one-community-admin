@@ -49,7 +49,7 @@ router.get("/admins/:id", requireRootAdmin, async (req, res) => {
       FROM admin_users
       WHERE id = $1
       `,
-      [id]
+      [id],
     );
 
     if (result.rows.length === 0) {
@@ -88,7 +88,7 @@ router.post("/admins", requireRootAdmin, async (req, res) => {
 
     const existingAdmin = await pool.query(
       `SELECT id FROM admin_users WHERE email = $1`,
-      [email]
+      [email],
     );
 
     if (existingAdmin.rows.length > 0) {
@@ -111,7 +111,7 @@ router.post("/admins", requireRootAdmin, async (req, res) => {
       VALUES ($1, $2, $3, 'admin', true)
       RETURNING id, full_name, email, role, is_active, created_at, updated_at
       `,
-      [full_name, email, passwordHash]
+      [full_name, email, passwordHash],
     );
 
     const createdAdmin = result.rows[0];
@@ -138,7 +138,7 @@ router.post("/admins", requireRootAdmin, async (req, res) => {
           role: createdAdmin.role,
           is_active: createdAdmin.is_active,
         }),
-      ]
+      ],
     );
 
     return res.status(201).json({
@@ -156,14 +156,8 @@ router.post("/admins", requireRootAdmin, async (req, res) => {
 router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      full_name,
-      email,
-      role,
-      is_active,
-      changePassword,
-      newPassword,
-    } = req.body;
+    const { full_name, email, role, is_active, changePassword, newPassword } =
+      req.body;
 
     if (!full_name || !email || !role) {
       return res.status(400).json({
@@ -179,7 +173,7 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
 
     const existingAdmin = await pool.query(
       `SELECT id FROM admin_users WHERE email = $1 AND id <> $2`,
-      [email, id]
+      [email, id],
     );
 
     if (existingAdmin.rows.length > 0) {
@@ -196,7 +190,7 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
 
     const currentAdminResult = await pool.query(
       `SELECT id, role, is_active FROM admin_users WHERE id = $1`,
-      [id]
+      [id],
     );
 
     if (currentAdminResult.rows.length === 0) {
@@ -215,7 +209,7 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
 
     if (currentAdmin.role === "root_admin" && role !== "root_admin") {
       const rootCountResult = await pool.query(
-        `SELECT COUNT(*)::int AS count FROM admin_users WHERE role = 'root_admin' AND is_active = true`
+        `SELECT COUNT(*)::int AS count FROM admin_users WHERE role = 'root_admin' AND is_active = true`,
       );
 
       if (rootCountResult.rows[0].count <= 1) {
@@ -227,7 +221,7 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
 
     if (currentAdmin.role === "root_admin" && is_active === false) {
       const rootCountResult = await pool.query(
-        `SELECT COUNT(*)::int AS count FROM admin_users WHERE role = 'root_admin' AND is_active = true`
+        `SELECT COUNT(*)::int AS count FROM admin_users WHERE role = 'root_admin' AND is_active = true`,
       );
 
       if (rootCountResult.rows[0].count <= 1) {
@@ -259,7 +253,7 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
       WHERE id = $5
       RETURNING id, full_name, email, role, is_active, created_at, updated_at
       `,
-      values
+      values,
     );
 
     const updatedAdmin = result.rows[0];
@@ -287,7 +281,7 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
           is_active: updatedAdmin.is_active,
           password_changed: Boolean(changePassword),
         }),
-      ]
+      ],
     );
 
     return res.status(200).json({
