@@ -41,6 +41,7 @@ export default function RequestsPage() {
   const [notes, setNotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [requestType, setRequestType] = useState("provider");
   const [selectedStatus, setSelectedStatus] = useState("incomplete");
   const [newNote, setNewNote] = useState("");
   const [listLoading, setListLoading] = useState(true);
@@ -57,7 +58,7 @@ export default function RequestsPage() {
     setError("");
 
     try {
-      const data = await getRequests(currentFilter);
+      const data = await getRequests(currentFilter, requestType);
       const items = data.requests || [];
       setRequests(items);
 
@@ -100,8 +101,8 @@ export default function RequestsPage() {
   };
 
   useEffect(() => {
-    loadRequests(filterStatus, selectedRequestId);
-  }, [filterStatus]);
+  loadRequests(filterStatus, selectedRequestId);
+}, [filterStatus, requestType]);
 
   useEffect(() => {
     loadRequestDetails(selectedRequestId);
@@ -161,7 +162,7 @@ export default function RequestsPage() {
             <h3 className="text-lg font-semibold text-gray-800">Requests</h3>
           </div>
 
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
             <input
               type="text"
               placeholder="Search by provider or title"
@@ -181,6 +182,15 @@ export default function RequestsPage() {
                 </option>
               ))}
             </select>
+            <select
+  value={requestType}
+  onChange={(e) => setRequestType(e.target.value)}
+  className="w-full rounded-xl border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+>
+  <option value="provider">Provider Requests</option>
+  <option value="public">Public Messages</option>
+  <option value="all">All Requests</option>
+</select>
           </div>
 
           <div className="flex-1 min-h-0">
@@ -195,7 +205,7 @@ export default function RequestsPage() {
                     <thead className="sticky top-0 z-10 bg-blue-700 text-white">
                       <tr className="text-left">
                         <th className="py-3 pr-4 pl-3 font-semibold">
-                          Provider
+                          Requester
                         </th>
                         <th className="py-3 pr-4 font-semibold">Title</th>
                         <th className="py-3 pr-4 font-semibold">Status</th>
@@ -216,7 +226,7 @@ export default function RequestsPage() {
                             }`}
                           >
                             <td className="py-4 pr-4 pl-3 font-medium text-gray-800">
-                              {request.display_name || "Unknown provider"}
+                              {request.display_name || "Unknown requester"}
                             </td>
 
                             <td className="py-4 pr-4 text-gray-600">
@@ -273,7 +283,7 @@ export default function RequestsPage() {
 
                 <div>
                   <p className="text-xs font-semibold uppercase text-gray-500">
-                    Provider
+                    Requester
                   </p>
                   <p className="text-sm text-gray-800 mt-1">
                     {selectedRequest.display_name || "Unknown provider"}
@@ -319,7 +329,11 @@ export default function RequestsPage() {
                           className="rounded-xl border border-gray-200 p-3"
                         >
                           <p className="text-xs font-semibold text-gray-500 mb-1">
-                            {note.user_type === "admin" ? "Admin" : "Provider"}{" "}
+                            {note.user_type === "admin"
+  ? "Admin"
+  : note.user_type === "public"
+    ? "Public User"
+    : "Provider"}{" "}
                             — {new Date(note.created_at).toLocaleString()}
                           </p>
                           <p className="text-sm text-gray-800">{note.note}</p>
