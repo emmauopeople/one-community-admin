@@ -114,9 +114,36 @@ router.post("/admins", requireRootAdmin, async (req, res) => {
       [full_name, email, passwordHash]
     );
 
+    const createdAdmin = result.rows[0];
+
+    await pool.query(
+      `
+      INSERT INTO audit_logs (
+        actor_admin_id,
+        action_type,
+        target_type,
+        target_id,
+        details
+      )
+      VALUES ($1, $2, $3, $4, $5::jsonb)
+      `,
+      [
+        req.session.admin.id,
+        "admin_created",
+        "admin",
+        String(createdAdmin.id),
+        JSON.stringify({
+          full_name: createdAdmin.full_name,
+          email: createdAdmin.email,
+          role: createdAdmin.role,
+          is_active: createdAdmin.is_active,
+        }),
+      ]
+    );
+
     return res.status(201).json({
       message: "Admin created successfully",
-      admin: result.rows[0],
+      admin: createdAdmin,
     });
   } catch (error) {
     return res.status(500).json({
@@ -180,19 +207,13 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
 
     const currentAdmin = currentAdminResult.rows[0];
 
-    if (
-      req.session.admin.id === id &&
-      is_active === false
-    ) {
+    if (req.session.admin.id === id && is_active === false) {
       return res.status(400).json({
         message: "You cannot deactivate your own account",
       });
     }
 
-    if (
-      currentAdmin.role === "root_admin" &&
-      role !== "root_admin"
-    ) {
+    if (currentAdmin.role === "root_admin" && role !== "root_admin") {
       const rootCountResult = await pool.query(
         `SELECT COUNT(*)::int AS count FROM admin_users WHERE role = 'root_admin' AND is_active = true`
       );
@@ -204,10 +225,7 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
       }
     }
 
-    if (
-      currentAdmin.role === "root_admin" &&
-      is_active === false
-    ) {
+    if (currentAdmin.role === "root_admin" && is_active === false) {
       const rootCountResult = await pool.query(
         `SELECT COUNT(*)::int AS count FROM admin_users WHERE role = 'root_admin' AND is_active = true`
       );
@@ -244,9 +262,37 @@ router.patch("/admins/:id", requireRootAdmin, async (req, res) => {
       values
     );
 
+    const updatedAdmin = result.rows[0];
+
+    await pool.query(
+      `
+      INSERT INTO audit_logs (
+        actor_admin_id,
+        action_type,
+        target_type,
+        target_id,
+        details
+      )
+      VALUES ($1, $2, $3, $4, $5::jsonb)
+      `,
+      [
+        req.session.admin.id,
+        "admin_updated",
+        "admin",
+        String(updatedAdmin.id),
+        JSON.stringify({
+          full_name: updatedAdmin.full_name,
+          email: updatedAdmin.email,
+          role: updatedAdmin.role,
+          is_active: updatedAdmin.is_active,
+          password_changed: Boolean(changePassword),
+        }),
+      ]
+    );
+
     return res.status(200).json({
       message: "Admin updated successfully",
-      admin: result.rows[0],
+      admin: updatedAdmin,
     });
   } catch (error) {
     return res.status(500).json({

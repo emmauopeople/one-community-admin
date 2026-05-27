@@ -5,45 +5,74 @@ import {
   requestUpdatesTotal,
   requestNotesAddedTotal,
 } from "../metrics/metricsRegistry.js";
+
 const router = express.Router();
+
+const uiToDbStatus = {
+  incomplete: "incomplete",
+  "in-progress": "in_progress",
+  complete: "completed",
+  closed: "closed",
+  denied: "denied",
+};
+
+const dbToUiStatus = {
+  incomplete: "incomplete",
+  in_progress: "in-progress",
+  completed: "complete",
+  closed: "closed",
+  denied: "denied",
+};
+
+function toUiStatus(status) {
+  return dbToUiStatus[status] || status;
+}
+
+function toDbStatus(status) {
+  return uiToDbStatus[status] || status;
+}
 
 router.get("/requests", requireAdminAuth, async (req, res) => {
   try {
     const { status = "all" } = req.query;
 
-    let query = `
+    let sql = `
       SELECT
-        pr.id,
-        pr.provider_id,
-        u.display_name,
-        pr.title,
-        pr.status,
-        pr.created_at,
-        pr.updated_at
-      FROM provider_requests pr
-      JOIN users u
-        ON u.id = pr.provider_id
+        sr.id,
+        sr.requester_user_id AS provider_id,
+        sr.requester_name AS display_name,
+        sr.subject AS title,
+        sr.status,
+        sr.created_at,
+        sr.updated_at
+      FROM support_requests sr
+      WHERE sr.requester_type = 'provider'
     `;
 
     const values = [];
 
     if (status === "closed") {
-      query += ` WHERE pr.status = $1 `;
+      sql += ` AND sr.status = $1 `;
       values.push("closed");
     } else if (status !== "all") {
-      query += ` WHERE pr.status = $1 AND pr.status <> 'closed' `;
-      values.push(status);
+      sql += ` AND sr.status = $1 AND sr.status <> 'closed' `;
+      values.push(toDbStatus(status));
     } else {
-      query += ` WHERE pr.status <> 'closed' `;
+      sql += ` AND sr.status <> 'closed' `;
     }
 
-    query += ` ORDER BY pr.created_at DESC `;
+    sql += ` ORDER BY sr.created_at DESC `;
 
-    const result = await pool.query(query, values);
+    const result = await pool.query(sql, values);
+
+    const requests = result.rows.map((row) => ({
+      ...row,
+      status: toUiStatus(row.status),
+    }));
 
     return res.status(200).json({
       message: "Requests fetched successfully",
-      requests: result.rows,
+      requests,
     });
   } catch (error) {
     return res.status(500).json({
@@ -60,21 +89,20 @@ router.get("/requests/:id", requireAdminAuth, async (req, res) => {
     const requestResult = await pool.query(
       `
       SELECT
-        pr.id,
-        pr.provider_id,
-        u.display_name,
-        u.email,
-        pr.title,
-        pr.description,
-        pr.status,
-        pr.admin_note,
-        pr.created_at,
-        pr.updated_at,
-        pr.completed_at
-      FROM provider_requests pr
-      JOIN users u
-        ON u.id = pr.provider_id
-      WHERE pr.id = $1
+        sr.id,
+        sr.requester_user_id AS provider_id,
+        sr.requester_name AS display_name,
+        sr.requester_email AS email,
+        sr.subject AS title,
+        sr.description,
+        sr.status,
+        NULL::text AS admin_note,
+        sr.created_at,
+        sr.updated_at,
+        sr.closed_at AS completed_at
+      FROM support_requests sr
+      WHERE sr.id = $1
+        AND sr.requester_type = 'provider'
       `,
       [id],
     );
@@ -90,20 +118,26 @@ router.get("/requests/:id", requireAdminAuth, async (req, res) => {
       SELECT
         id,
         request_id,
-        user_type,
-        user_id,
-        note,
+        sender_type AS user_type,
+        sender_user_id AS user_id,
+        message AS note,
         created_at
-      FROM request_notes
+      FROM support_request_messages
       WHERE request_id = $1
-      ORDER BY created_at ASC
+        AND is_internal = FALSE
+      ORDER BY created_at ASC, id ASC
       `,
       [id],
     );
 
+    const request = {
+      ...requestResult.rows[0],
+      status: toUiStatus(requestResult.rows[0].status),
+    };
+
     return res.status(200).json({
       message: "Request fetched successfully",
-      request: requestResult.rows[0],
+      request,
       notes: notesResult.rows,
     });
   } catch (error) {
@@ -133,24 +167,21 @@ router.patch("/requests/:id", requireAdminAuth, async (req, res) => {
       });
     }
 
-    const completedAt = status === "complete" ? "NOW()" : "NULL";
+    const dbStatus = toDbStatus(status);
+    const closedAt = dbStatus === "completed" || dbStatus === "closed" ? "NOW()" : "NULL";
 
     const result = await pool.query(
       `
-      UPDATE provider_requests
+      UPDATE support_requests
       SET
         status = $1,
-        
         updated_at = NOW(),
-        completed_at = ${completedAt},
-        completed_by_admin_id = CASE
-          WHEN $1 = 'complete' THEN $2::uuid
-          ELSE NULL
-        END
-      WHERE id = $3
+        closed_at = ${closedAt}
+      WHERE id = $2
+        AND requester_type = 'provider'
       RETURNING *
       `,
-      [status, req.session.admin.id, id],
+      [dbStatus, id],
     );
 
     if (result.rows.length === 0) {
@@ -158,11 +189,20 @@ router.patch("/requests/:id", requireAdminAuth, async (req, res) => {
         message: "Request not found",
       });
     }
+
     requestUpdatesTotal.inc();
 
     return res.status(200).json({
       message: "Request updated successfully",
-      request: result.rows[0],
+      request: {
+        ...result.rows[0],
+        provider_id: result.rows[0].requester_user_id,
+        display_name: result.rows[0].requester_name,
+        email: result.rows[0].requester_email,
+        title: result.rows[0].subject,
+        status: toUiStatus(result.rows[0].status),
+        completed_at: result.rows[0].closed_at,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -184,7 +224,12 @@ router.post("/requests/:id/notes", requireAdminAuth, async (req, res) => {
     }
 
     const requestCheck = await pool.query(
-      `SELECT id FROM provider_requests WHERE id = $1`,
+      `
+      SELECT id
+      FROM support_requests
+      WHERE id = $1
+        AND requester_type = 'provider'
+      `,
       [id],
     );
 
@@ -196,11 +241,29 @@ router.post("/requests/:id/notes", requireAdminAuth, async (req, res) => {
 
     const result = await pool.query(
       `
-      INSERT INTO request_notes (request_id, user_type, user_id, note)
-      VALUES ($1, 'admin', $2, $3)
-      RETURNING *
+      INSERT INTO support_request_messages
+        (request_id, sender_type, sender_user_id, sender_name, sender_email, message, is_internal)
+      VALUES
+        ($1, 'admin', NULL, 'Admin', NULL, $2, FALSE)
+      RETURNING
+        id,
+        request_id,
+        sender_type AS user_type,
+        sender_user_id AS user_id,
+        message AS note,
+        created_at
       `,
-      [id, req.session.admin.id, note.trim()],
+      [id, note.trim()],
+    );
+
+    await pool.query(
+      `
+      UPDATE support_requests
+      SET updated_at = NOW(),
+          last_message_at = NOW()
+      WHERE id = $1
+      `,
+      [id],
     );
 
     requestNotesAddedTotal.inc();
