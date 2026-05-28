@@ -140,7 +140,7 @@ router.get(
       const days = getDays(req.query.days);
 
       const result = await pool.query(
-  `
+        `
   SELECT
     CASE
       WHEN event_type = 'contact_click_whatsapp' THEN 'WhatsApp'
@@ -159,8 +159,8 @@ router.get(
     END
   ORDER BY clicks DESC
   `,
-  [days],
-);
+        [days],
+      );
 
       return res.status(200).json({
         message: "Contact channels fetched successfully",
