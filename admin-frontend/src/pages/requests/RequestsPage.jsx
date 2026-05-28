@@ -101,8 +101,8 @@ export default function RequestsPage() {
   };
 
   useEffect(() => {
-  loadRequests(filterStatus, selectedRequestId);
-}, [filterStatus, requestType]);
+    loadRequests(filterStatus, selectedRequestId);
+  }, [filterStatus, requestType]);
 
   useEffect(() => {
     loadRequestDetails(selectedRequestId);
@@ -183,14 +183,14 @@ export default function RequestsPage() {
               ))}
             </select>
             <select
-  value={requestType}
-  onChange={(e) => setRequestType(e.target.value)}
-  className="w-full rounded-xl border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
->
-  <option value="provider">Provider Requests</option>
-  <option value="public">Public Messages</option>
-  <option value="all">All Requests</option>
-</select>
+              value={requestType}
+              onChange={(e) => setRequestType(e.target.value)}
+              className="w-full rounded-xl border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="provider">Provider Requests</option>
+              <option value="public">Public Messages</option>
+              <option value="all">All Requests</option>
+            </select>
           </div>
 
           <div className="flex-1 min-h-0">
@@ -330,10 +330,10 @@ export default function RequestsPage() {
                         >
                           <p className="text-xs font-semibold text-gray-500 mb-1">
                             {note.user_type === "admin"
-  ? "Admin"
-  : note.user_type === "public"
-    ? "Public User"
-    : "Provider"}{" "}
+                              ? "Admin"
+                              : note.user_type === "public"
+                                ? "Public User"
+                                : "Provider"}{" "}
                             — {new Date(note.created_at).toLocaleString()}
                           </p>
                           <p className="text-sm text-gray-800">{note.note}</p>

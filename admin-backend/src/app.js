@@ -13,6 +13,7 @@ import skillRoutes from "./routes/skillRoutes.js";
 import metricsRoutes from "./routes/metricsRoutes.js";
 import monitoringRoutes from "./routes/monitoringRoutes.js";
 import adminManagementRoutes from "./routes/adminManagementRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 const app = express();
 
@@ -59,5 +60,6 @@ app.use("/api/admin", skillRoutes);
 app.use("/", metricsRoutes);
 app.use("/api/admin", monitoringRoutes);
 app.use("/api/admin", adminManagementRoutes);
+app.use("/api/admin", analyticsRoutes);
 
 export default app;
